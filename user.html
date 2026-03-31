@@ -1,0 +1,116 @@
+{% extends "base.html" %}
+{% block title %}My Dashboard – Wanderlust AI{% endblock %}
+{% block extra_css %}
+<style>
+.dashboard-hero { background:linear-gradient(135deg,var(--navy),var(--navy-mid)); padding:120px 40px 60px; }
+.dashboard-hero h1 { font-family:'Cormorant Garamond',serif; font-size:2.8rem; color:white; font-weight:700; }
+.dashboard-hero h1 span { color:var(--gold); }
+.dashboard-hero p { color:rgba(255,255,255,0.6); margin-top:6px; }
+.dashboard-main { max-width:1300px; margin:0 auto; padding:48px 40px; display:grid; grid-template-columns:280px 1fr; gap:40px; }
+.profile-card { background:white; border-radius:20px; padding:28px; box-shadow:var(--shadow-sm); height:fit-content; position:sticky; top:90px; }
+.profile-avatar { width:80px; height:80px; border-radius:50%; background:linear-gradient(135deg,var(--navy),var(--navy-mid)); display:flex; align-items:center; justify-content:center; font-size:2rem; color:var(--gold); font-family:'Cormorant Garamond',serif; font-weight:700; margin:0 auto 16px; }
+.profile-name { text-align:center; font-family:'Cormorant Garamond',serif; font-size:1.4rem; color:var(--navy); font-weight:700; }
+.profile-email { text-align:center; color:var(--text-light); font-size:0.85rem; margin-top:4px; }
+.profile-divider { height:1px; background:var(--cream-dark); margin:20px 0; }
+.profile-stat { display:flex; justify-content:space-between; margin-bottom:10px; font-size:0.88rem; }
+.profile-stat span:first-child { color:var(--text-mid); }
+.profile-stat span:last-child { color:var(--navy); font-weight:600; }
+.profile-nav { margin-top:16px; }
+.profile-nav a { display:flex; align-items:center; gap:10px; padding:10px 12px; border-radius:10px; color:var(--text-mid); text-decoration:none; font-size:0.9rem; font-weight:500; transition:var(--transition); margin-bottom:4px; }
+.profile-nav a:hover, .profile-nav a.active { background:var(--cream); color:var(--navy); }
+.profile-nav a i { color:var(--gold); width:16px; }
+.bookings-section {}
+.section-title { font-family:'Cormorant Garamond',serif; font-size:1.8rem; color:var(--navy); font-weight:700; margin-bottom:24px; }
+.booking-card-item { background:white; border-radius:18px; padding:24px; box-shadow:var(--shadow-sm); display:grid; grid-template-columns:80px 1fr auto; gap:20px; align-items:center; margin-bottom:16px; border-left:4px solid transparent; transition:var(--transition); }
+.booking-card-item:hover { box-shadow:var(--shadow-md); }
+.booking-card-item.confirmed { border-color:var(--success); }
+.booking-card-item.pending { border-color:var(--warning); }
+.booking-card-item.cancelled { border-color:var(--danger); opacity:0.7; }
+.booking-img { width:80px; height:80px; border-radius:12px; object-fit:cover; }
+.booking-title { font-family:'Cormorant Garamond',serif; font-size:1.15rem; color:var(--navy); font-weight:700; margin-bottom:4px; }
+.booking-meta { font-size:0.82rem; color:var(--text-mid); }
+.booking-meta span { margin-right:14px; }
+.booking-price { font-family:'Cormorant Garamond',serif; font-size:1.4rem; color:var(--navy); font-weight:700; text-align:right; }
+.booking-price small { display:block; font-size:0.75rem; color:var(--text-light); font-family:'DM Sans',sans-serif; font-weight:400; }
+.empty-state { text-align:center; padding:80px 20px; }
+.empty-state i { font-size:3.5rem; color:var(--cream-dark); margin-bottom:16px; }
+.empty-state h3 { font-family:'Cormorant Garamond',serif; font-size:1.8rem; color:var(--navy); margin-bottom:10px; }
+.empty-state p { color:var(--text-mid); margin-bottom:24px; }
+@media (max-width:900px) { .dashboard-main { grid-template-columns:1fr; } .profile-card { position:static; } }
+@media (max-width:768px) { .dashboard-main { padding:30px 20px; } .booking-card-item { grid-template-columns:60px 1fr; } .booking-price { display:none; } }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="dashboard-hero">
+    <div style="max-width:1300px; margin:0 auto; padding:0 40px;">
+        <h1>Welcome back, <span>{{ user.full_name.split()[0] }}</span> ✈️</h1>
+        <p>Manage your bookings and explore your travel history</p>
+    </div>
+</div>
+
+<div class="dashboard-main">
+    <aside class="profile-card">
+        <div class="profile-avatar">{{ user.full_name[0] }}</div>
+        <div class="profile-name">{{ user.full_name }}</div>
+        <div class="profile-email">{{ user.email }}</div>
+        <div class="profile-divider"></div>
+        <div class="profile-stat"><span>Total Bookings</span><span>{{ bookings|length }}</span></div>
+        <div class="profile-stat"><span>Confirmed</span><span>{{ bookings|selectattr('status', 'eq', 'confirmed')|list|length }}</span></div>
+        <div class="profile-stat"><span>Pending</span><span>{{ bookings|selectattr('status', 'eq', 'pending')|list|length }}</span></div>
+        <div class="profile-divider"></div>
+        <nav class="profile-nav">
+            <a href="{{ url_for('bookings.user_dashboard') }}" class="active">
+                <i class="fas fa-calendar-check"></i> My Bookings
+            </a>
+            <a href="{{ url_for('ai.itinerary') }}"><i class="fas fa-map-marked-alt"></i> Itinerary Planner</a>
+            <a href="{{ url_for('ai.chatbot') }}"><i class="fas fa-robot"></i> Travel Chatbot</a>
+            <a href="{{ url_for('ai.recommendations') }}"><i class="fas fa-star"></i> Recommendations</a>
+            <a href="{{ url_for('packages.list_packages') }}"><i class="fas fa-suitcase"></i> Browse Packages</a>
+            <a href="{{ url_for('auth.logout') }}" style="color:var(--danger)"><i class="fas fa-sign-out-alt"></i> Logout</a>
+        </nav>
+    </aside>
+
+    <div class="bookings-section">
+        <h2 class="section-title">My Bookings</h2>
+        {% if bookings %}
+            {% for b in bookings %}
+            <div class="booking-card-item {{ b.status }}">
+                <img src="{{ b.image_url }}" alt="{{ b.title }}" class="booking-img">
+                <div>
+                    <div class="booking-title">{{ b.title }}</div>
+                    <div class="booking-meta">
+                        <span><i class="fas fa-map-marker-alt"></i> {{ b.destination }}</span>
+                        <span><i class="fas fa-calendar"></i> {{ b.travel_date }}</span>
+                        <span><i class="fas fa-users"></i> {{ b.num_people }} people</span>
+                        <span><i class="fas fa-clock"></i> {{ b.duration_days }} days</span>
+                    </div>
+                    <div style="margin-top:10px; display:flex; align-items:center; gap:10px;">
+                        <span class="badge badge-{% if b.status=='confirmed' %}success{% elif b.status=='pending' %}warning{% else %}danger{% endif %}">
+                            {{ b.status|capitalize }}
+                        </span>
+                        <span style="font-size:0.78rem; color:var(--text-light);">Booked {{ b.booked_at.strftime('%d %b %Y') if b.booked_at else '' }}</span>
+                        {% if b.status != 'cancelled' %}
+                        <form method="POST" action="{{ url_for('bookings.cancel_booking', booking_id=b.id) }}" style="margin:0" onsubmit="return confirm('Cancel this booking?')">
+                            <button type="submit" class="btn btn-sm btn-danger" style="padding:5px 14px; font-size:0.78rem;">Cancel</button>
+                        </form>
+                        {% endif %}
+                    </div>
+                </div>
+                <div class="booking-price">
+                    ₹{{ "{:,.0f}".format(b.total_price) }}
+                    <small>Total Cost</small>
+                </div>
+            </div>
+            {% endfor %}
+        {% else %}
+        <div class="empty-state">
+            <i class="fas fa-suitcase-rolling"></i>
+            <h3>No bookings yet</h3>
+            <p>Explore our amazing packages and book your dream trip today!</p>
+            <a href="{{ url_for('packages.list_packages') }}" class="btn btn-primary">Browse Packages</a>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
