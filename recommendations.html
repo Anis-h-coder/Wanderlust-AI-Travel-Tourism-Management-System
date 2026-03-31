@@ -1,0 +1,201 @@
+{% extends "base.html" %}
+{% block title %}AI Travel Recommendations – Wanderlust AI{% endblock %}
+{% block extra_css %}
+<style>
+.rec-page { padding-top:70px; min-height:100vh; background:var(--cream); }
+.rec-hero { background:linear-gradient(135deg,var(--navy),var(--navy-mid)); padding:80px 40px 60px; text-align:center; }
+.rec-hero h1 { font-family:'Cormorant Garamond',serif; font-size:clamp(2.2rem,4vw,3.5rem); color:white; font-weight:700; margin-bottom:12px; }
+.rec-hero p { color:rgba(255,255,255,0.65); }
+.rec-main { max-width:1200px; margin:0 auto; padding:60px 40px; }
+.rec-form-card { background:white; border-radius:24px; padding:40px; box-shadow:var(--shadow-sm); margin-bottom:48px; }
+.rec-form-card h3 { font-family:'Cormorant Garamond',serif; font-size:1.6rem; color:var(--navy); font-weight:700; margin-bottom:28px; }
+.form-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:20px; margin-bottom:28px; }
+.rec-card {
+    background: white;
+    border-radius: 20px;
+    overflow: hidden;
+    box-shadow: var(--shadow-sm);
+    transition: var(--transition);
+    border: 2px solid transparent;
+    animation: slideUp 0.5s ease forwards;
+}
+.rec-card:hover { transform: translateY(-6px); box-shadow: var(--shadow-md); border-color: var(--gold-light); }
+.rec-card-header {
+    background: linear-gradient(135deg,var(--navy),var(--navy-mid));
+    padding: 28px;
+    position: relative;
+    overflow: hidden;
+}
+.rec-card-header::before {
+    content: attr(data-emoji);
+    position: absolute;
+    right: 20px; top: 50%;
+    transform: translateY(-50%);
+    font-size: 4rem;
+    opacity: 0.15;
+}
+.rec-num {
+    background: var(--gold);
+    color: var(--navy);
+    width: 28px; height: 28px;
+    border-radius: 8px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 0.82rem; font-weight: 800;
+    margin-bottom: 12px;
+}
+.rec-destination { font-family:'Cormorant Garamond',serif; font-size:1.6rem; color:white; font-weight:700; margin-bottom:4px; }
+.rec-state { color:rgba(255,255,255,0.55); font-size:0.85rem; }
+.rec-card-body { padding:24px; }
+.rec-reason { color:var(--text-mid); font-size:0.9rem; line-height:1.7; margin-bottom:16px; }
+.rec-meta { display:flex; flex-wrap:wrap; gap:10px; margin-bottom:16px; }
+.rec-tag { background:var(--cream); color:var(--text-mid); padding:5px 12px; border-radius:8px; font-size:0.8rem; font-weight:500; }
+.rec-tag i { color:var(--gold); margin-right:4px; }
+.rec-highlight {
+    background: linear-gradient(135deg,rgba(201,168,76,0.08),rgba(201,168,76,0.03));
+    border: 1px solid rgba(201,168,76,0.2);
+    border-radius: 10px;
+    padding: 12px 14px;
+    font-size: 0.85rem;
+    color: var(--gold-dark);
+    font-weight: 500;
+}
+.rec-highlight i { margin-right:6px; }
+.rec-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(340px,1fr)); gap:24px; }
+.loading-state { text-align:center; padding:60px; }
+.spinner { width:48px; height:48px; border:4px solid var(--cream-dark); border-top-color:var(--gold); border-radius:50%; animation:spin 1s linear infinite; margin:0 auto 16px; }
+@keyframes spin { to { transform:rotate(360deg); } }
+@media (max-width:900px) { .form-grid { grid-template-columns:1fr; } }
+@media (max-width:768px) { .rec-main { padding:40px 20px; } }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="rec-page">
+    <div class="rec-hero">
+        <h1>✨ AI Travel Recommendations</h1>
+        <p>Tell us your preferences and our AI will suggest the perfect destinations for you</p>
+    </div>
+
+    <div class="rec-main">
+        <div class="rec-form-card">
+            <h3>🎯 What's Your Travel Style?</h3>
+            <div class="form-grid">
+                <div class="form-group">
+                    <label class="form-label">Budget (₹ per person)</label>
+                    <input type="number" id="budget" class="form-control" placeholder="e.g. 20000" value="20000">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Preferred Region</label>
+                    <select id="location_pref" class="form-control form-select">
+                        <option value="anywhere in India">Anywhere in India</option>
+                        <option value="North India">North India</option>
+                        <option value="South India">South India</option>
+                        <option value="East India">East India</option>
+                        <option value="West India">West India</option>
+                        <option value="Northeast India">Northeast India</option>
+                        <option value="Himalayan region">Himalayan Region</option>
+                        <option value="Coastal India">Coastal Destinations</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Trip Duration (Days)</label>
+                    <input type="number" id="duration" class="form-control" value="5" min="1" max="30">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Travel Type</label>
+                    <select id="travel_type" class="form-control form-select">
+                        <option value="adventure and trekking">🏔️ Adventure & Trekking</option>
+                        <option value="beach and relaxation">🏖️ Beach & Relaxation</option>
+                        <option value="cultural and heritage">🏛️ Cultural & Heritage</option>
+                        <option value="wildlife and nature">🦁 Wildlife & Nature</option>
+                        <option value="luxury and wellness">👑 Luxury & Wellness</option>
+                        <option value="backpacking and budget">🎒 Backpacking & Budget</option>
+                        <option value="family vacation">👨‍👩‍👧 Family Vacation</option>
+                        <option value="romantic honeymoon">💑 Romantic / Honeymoon</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Group Type</label>
+                    <select id="group_type" class="form-control form-select">
+                        <option value="solo traveler">Solo Traveler</option>
+                        <option value="couple">Couple</option>
+                        <option value="group of friends">Group of Friends</option>
+                        <option value="family with kids">Family with Kids</option>
+                        <option value="senior citizens">Senior Citizens</option>
+                    </select>
+                </div>
+            </div>
+            <button class="btn btn-primary" onclick="getRecommendations()" id="recBtn" style="justify-content:center;">
+                <i class="fas fa-star"></i> Get AI Recommendations
+            </button>
+        </div>
+
+        <div id="loadingState" class="loading-state" style="display:none">
+            <div class="spinner"></div>
+            <p style="color:var(--text-mid)">🌍 Finding perfect destinations for you...</p>
+        </div>
+        <div id="recResults" style="display:none">
+            <div class="section-header" style="text-align:left; margin-bottom:28px">
+                <div class="section-tag">AI Recommendations</div>
+                <h2 style="font-size:1.8rem">Your Perfect Destinations</h2>
+            </div>
+            <div class="rec-grid" id="recGrid"></div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+const emojis = ['🏔️','🌴','🏛️','🦁','🌊','🎭','🌿','⛵'];
+async function getRecommendations() {
+    const budget = document.getElementById('budget').value;
+    const location_pref = document.getElementById('location_pref').value;
+    const travel_type = document.getElementById('travel_type').value;
+    const duration = document.getElementById('duration').value;
+    const group_type = document.getElementById('group_type').value;
+    document.getElementById('recResults').style.display = 'none';
+    document.getElementById('loadingState').style.display = 'block';
+    document.getElementById('recBtn').disabled = true;
+    try {
+        const res = await fetch('/ai/recommendations/get', {
+            method:'POST',
+            headers:{'Content-Type':'application/json'},
+            body: JSON.stringify({budget, location_pref, travel_type, duration, group_type})
+        });
+        const data = await res.json();
+        document.getElementById('loadingState').style.display = 'none';
+        const recs = data.recommendations;
+        if (!recs || recs.length === 0) {
+            document.getElementById('recGrid').innerHTML = '<p style="color:var(--text-mid)">Could not generate recommendations. Please try again.</p>';
+        } else {
+            document.getElementById('recGrid').innerHTML = recs.map((r, i) => `
+                <div class="rec-card" style="animation-delay:${i*0.1}s">
+                    <div class="rec-card-header" data-emoji="${emojis[i % emojis.length]}">
+                        <div class="rec-num">${i+1}</div>
+                        <div class="rec-destination">${r.destination || 'Destination'}</div>
+                        <div class="rec-state">${r.state || ''}</div>
+                    </div>
+                    <div class="rec-card-body">
+                        <p class="rec-reason">${r.why_recommend || ''}</p>
+                        <div class="rec-meta">
+                            ${r.best_time ? `<span class="rec-tag"><i class="fas fa-calendar"></i>${r.best_time}</span>` : ''}
+                            ${r.estimated_cost ? `<span class="rec-tag"><i class="fas fa-rupee-sign"></i>${r.estimated_cost}</span>` : ''}
+                            ${r.difficulty_level ? `<span class="rec-tag"><i class="fas fa-signal"></i>${r.difficulty_level}</span>` : ''}
+                        </div>
+                        ${r.highlight ? `<div class="rec-highlight"><i class="fas fa-star"></i>${r.highlight}</div>` : ''}
+                        <a href="{{ url_for('packages.list_packages') }}?search=${encodeURIComponent(r.destination)}" class="btn btn-outline btn-sm" style="margin-top:16px; width:100%; justify-content:center">
+                            <i class="fas fa-search"></i> Find Packages
+                        </a>
+                    </div>
+                </div>`).join('');
+        }
+        document.getElementById('recResults').style.display = 'block';
+    } catch(e) {
+        document.getElementById('loadingState').style.display = 'none';
+        alert('Error fetching recommendations. Please try again.');
+    }
+    document.getElementById('recBtn').disabled = false;
+}
+</script>
+{% endblock %}

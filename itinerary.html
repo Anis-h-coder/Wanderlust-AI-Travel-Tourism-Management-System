@@ -1,0 +1,630 @@
+{% extends "base.html" %}
+{% block title %}AI Itinerary Planner – Wanderlust AI{% endblock %}
+
+{% block extra_css %}
+<style>
+/* ── Page Layout ─────────────────────────────── */
+.itinerary-page {
+    padding-top: 70px;
+    min-height: 100vh;
+    background: var(--cream);
+}
+
+/* ── Hero ────────────────────────────────────── */
+.itinerary-hero {
+    background: linear-gradient(135deg, var(--navy), var(--navy-mid));
+    padding: 80px 40px 60px;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+}
+.itinerary-hero::before {
+    content: '🗓️';
+    position: absolute;
+    font-size: 18rem;
+    opacity: 0.04;
+    top: 50%; left: 50%;
+    transform: translate(-50%, -50%);
+    pointer-events: none;
+}
+.itinerary-hero h1 {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: clamp(2.2rem, 4vw, 3.5rem);
+    color: white;
+    font-weight: 700;
+    margin-bottom: 12px;
+    position: relative;
+}
+.itinerary-hero p {
+    color: rgba(255,255,255,0.65);
+    font-size: 1rem;
+    position: relative;
+}
+
+/* ── Main Grid ───────────────────────────────── */
+.itinerary-main {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 60px 40px;
+    display: grid;
+    grid-template-columns: 400px 1fr;
+    gap: 48px;
+    align-items: start;
+}
+
+/* ── Form Card ───────────────────────────────── */
+.itinerary-form-card {
+    background: white;
+    border-radius: 24px;
+    padding: 36px;
+    box-shadow: var(--shadow-sm);
+    position: sticky;
+    top: 90px;
+}
+.itinerary-form-card h3 {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 1.5rem;
+    color: var(--navy);
+    font-weight: 700;
+    margin-bottom: 24px;
+}
+
+/* ── Interest Tags ───────────────────────────── */
+.interest-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 8px;
+}
+.interest-tag {
+    padding: 7px 14px;
+    border: 2px solid var(--cream-dark);
+    border-radius: 8px;
+    font-size: 0.82rem;
+    cursor: pointer;
+    transition: var(--transition);
+    background: white;
+    color: var(--text-mid);
+    font-weight: 500;
+    font-family: 'DM Sans', sans-serif;
+}
+.interest-tag.selected {
+    border-color: var(--gold);
+    background: rgba(201,168,76,0.1);
+    color: var(--gold-dark);
+}
+
+/* ── Result Area ─────────────────────────────── */
+.result-area { min-height: 400px; }
+
+.result-placeholder {
+    background: white;
+    border-radius: 24px;
+    padding: 70px 40px;
+    text-align: center;
+    box-shadow: var(--shadow-sm);
+}
+.result-placeholder i {
+    font-size: 3.5rem;
+    margin-bottom: 20px;
+    color: var(--cream-dark);
+    display: block;
+}
+.result-placeholder h3 {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 1.6rem;
+    color: var(--navy);
+    margin-bottom: 10px;
+}
+.result-placeholder p {
+    color: var(--text-light);
+    font-size: 0.92rem;
+    line-height: 1.7;
+    max-width: 360px;
+    margin: 0 auto;
+}
+
+/* ── Loading ─────────────────────────────────── */
+.loading-state {
+    background: white;
+    border-radius: 24px;
+    text-align: center;
+    padding: 80px 40px;
+    box-shadow: var(--shadow-sm);
+}
+.spinner {
+    width: 52px; height: 52px;
+    border: 4px solid var(--cream-dark);
+    border-top-color: var(--gold);
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+    margin: 0 auto 20px;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+.loading-state p {
+    color: var(--text-mid);
+    font-size: 0.95rem;
+}
+
+/* ── Result Card ─────────────────────────────── */
+.itinerary-result {
+    background: white;
+    border-radius: 24px;
+    box-shadow: var(--shadow-sm);
+    overflow: hidden;
+}
+.itinerary-result-header {
+    background: linear-gradient(135deg, var(--navy), var(--navy-mid));
+    padding: 28px 36px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 16px;
+}
+.itinerary-result-header h3 {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 1.6rem;
+    color: white;
+    font-weight: 700;
+    margin-bottom: 4px;
+}
+.itinerary-result-header p {
+    color: rgba(255,255,255,0.55);
+    font-size: 0.85rem;
+}
+.itinerary-content { padding: 36px; }
+
+/* ── Rendered Itinerary Elements ─────────────── */
+.day-header {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    background: linear-gradient(135deg, var(--navy), var(--navy-mid));
+    border-radius: 14px;
+    padding: 16px 22px;
+    margin: 32px 0 20px;
+}
+.day-header:first-child { margin-top: 0; }
+
+.day-number {
+    background: var(--gold);
+    color: var(--navy);
+    padding: 6px 18px;
+    border-radius: 50px;
+    font-size: 0.8rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    white-space: nowrap;
+    flex-shrink: 0;
+}
+.day-title {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 1.2rem;
+    font-weight: 700;
+    color: white;
+    line-height: 1.3;
+}
+
+.time-block {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin: 20px 0 12px;
+    padding: 10px 16px;
+    background: rgba(201,168,76,0.07);
+    border-left: 3px solid var(--gold);
+    border-radius: 0 10px 10px 0;
+}
+.time-icon { font-size: 1.1rem; flex-shrink: 0; }
+.time-label {
+    font-weight: 700;
+    color: var(--gold-dark);
+    font-size: 0.88rem;
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+}
+.time-range {
+    color: var(--text-light);
+    font-size: 0.8rem;
+    margin-left: 2px;
+}
+
+.item-list {
+    list-style: none;
+    padding: 0;
+    margin: 4px 0 16px;
+    border: 1px solid var(--cream-dark);
+    border-radius: 12px;
+    overflow: hidden;
+}
+.item-list li {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 11px 16px;
+    border-bottom: 1px solid var(--cream-dark);
+    font-size: 0.9rem;
+    color: var(--text-mid);
+    line-height: 1.75;
+    transition: background 0.2s;
+}
+.item-list li:last-child { border-bottom: none; }
+.item-list li:hover { background: var(--cream); }
+.bullet {
+    color: var(--gold);
+    font-size: 0.55rem;
+    margin-top: 7px;
+    flex-shrink: 0;
+}
+
+.budget-box {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    background: linear-gradient(135deg, rgba(201,168,76,0.12), rgba(201,168,76,0.04));
+    border: 1px solid rgba(201,168,76,0.3);
+    border-radius: 12px;
+    padding: 14px 18px;
+    margin: 16px 0;
+    font-size: 0.9rem;
+    color: var(--gold-dark);
+    font-weight: 600;
+    line-height: 1.5;
+}
+
+.tips-header {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 1.35rem;
+    font-weight: 700;
+    color: var(--navy);
+    margin: 32px 0 14px;
+    padding-bottom: 10px;
+    border-bottom: 2px solid var(--cream-dark);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.note-box {
+    background: rgba(52,152,219,0.06);
+    border-left: 3px solid #3498DB;
+    border-radius: 0 10px 10px 0;
+    padding: 14px 18px;
+    margin: 20px 0 8px;
+    font-size: 0.88rem;
+    color: var(--text-mid);
+    line-height: 1.75;
+}
+
+.section-label {
+    font-weight: 700;
+    color: var(--navy);
+    font-size: 0.9rem;
+    margin: 20px 0 8px;
+    text-transform: uppercase;
+    letter-spacing: 0.6px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+.section-label::before {
+    content: '';
+    display: inline-block;
+    width: 4px; height: 4px;
+    background: var(--gold);
+    border-radius: 50%;
+}
+
+.regular-line {
+    color: var(--text-mid);
+    font-size: 0.92rem;
+    line-height: 1.8;
+    margin: 6px 0;
+}
+
+/* ── Responsive ──────────────────────────────── */
+@media (max-width: 960px) {
+    .itinerary-main {
+        grid-template-columns: 1fr;
+        padding: 40px 24px;
+    }
+    .itinerary-form-card { position: static; }
+}
+@media (max-width: 600px) {
+    .itinerary-main { padding: 30px 16px; }
+    .itinerary-content { padding: 24px 20px; }
+    .itinerary-result-header { padding: 22px 20px; flex-direction: column; align-items: flex-start; }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="itinerary-page">
+
+    <!-- Hero -->
+    <div class="itinerary-hero">
+        <h1>AI Itinerary Planner</h1>
+        <p>Get a complete day-by-day travel plan generated by AI in seconds</p>
+    </div>
+
+    <!-- Main -->
+    <div class="itinerary-main">
+
+        <!-- Form -->
+        <div class="itinerary-form-card">
+            <h3>📍 Plan Your Trip</h3>
+
+            <div class="form-group">
+                <label class="form-label">Destination</label>
+                <input type="text" id="destination" class="form-control"
+                    placeholder="e.g. Kerala, Manali, Goa..."
+                    value="{{ request.args.get('dest', '') }}">
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Number of Days</label>
+                <input type="number" id="numDays" class="form-control"
+                    value="{{ request.args.get('days', 5) }}" min="1" max="21">
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Budget Level</label>
+                <select id="budget" class="form-control form-select">
+                    <option value="budget">💰 Budget (Under ₹10,000/day)</option>
+                    <option value="moderate" selected>🏨 Moderate (₹10,000–₹25,000/day)</option>
+                    <option value="luxury">👑 Luxury (Above ₹25,000/day)</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Interests</label>
+                <div class="interest-tags">
+                    <button class="interest-tag selected" onclick="toggleTag(this)">🏛️ Sightseeing</button>
+                    <button class="interest-tag" onclick="toggleTag(this)">🍽️ Food & Cuisine</button>
+                    <button class="interest-tag" onclick="toggleTag(this)">🏄 Adventure</button>
+                    <button class="interest-tag" onclick="toggleTag(this)">🛍️ Shopping</button>
+                    <button class="interest-tag" onclick="toggleTag(this)">🧘 Wellness & Spa</button>
+                    <button class="interest-tag" onclick="toggleTag(this)">📸 Photography</button>
+                    <button class="interest-tag" onclick="toggleTag(this)">🎭 Culture & Arts</button>
+                    <button class="interest-tag" onclick="toggleTag(this)">🌿 Nature</button>
+                </div>
+            </div>
+
+            <button class="btn btn-primary" onclick="generateItinerary()"
+                id="generateBtn"
+                style="width:100%; justify-content:center; margin-top:16px;">
+                <i class="fas fa-magic"></i> Generate Itinerary
+            </button>
+        </div>
+
+        <!-- Result -->
+        <div class="result-area">
+
+            <!-- Placeholder -->
+            <div id="resultPlaceholder" class="result-placeholder">
+                <i class="fas fa-map-marked-alt"></i>
+                <h3>Your Itinerary Awaits</h3>
+                <p>Fill in your destination and preferences, then click "Generate Itinerary" to get a complete AI-powered travel plan.</p>
+            </div>
+
+            <!-- Loading -->
+            <div id="loadingState" class="loading-state" style="display:none;">
+                <div class="spinner"></div>
+                <p>✨ Crafting your perfect itinerary...</p>
+            </div>
+
+            <!-- Result -->
+            <div id="itineraryResult" class="itinerary-result" style="display:none;">
+                <div class="itinerary-result-header">
+                    <div>
+                        <h3 id="resultTitle">Your Itinerary</h3>
+                        <p id="resultSubtitle"></p>
+                    </div>
+                    <button onclick="copyItinerary()"
+                        class="btn btn-outline btn-sm"
+                        style="color:white; border-color:rgba(255,255,255,0.35); flex-shrink:0;">
+                        <i class="fas fa-copy"></i> Copy
+                    </button>
+                </div>
+                <div class="itinerary-content" id="itineraryContent"></div>
+            </div>
+
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+/* ── Tag Toggle ──────────────────────────────── */
+function toggleTag(btn) {
+    btn.classList.toggle('selected');
+}
+function getInterests() {
+    return Array.from(document.querySelectorAll('.interest-tag.selected'))
+        .map(b => b.textContent.trim().replace(/^\S+\s/, ''))
+        .join(', ');
+}
+
+/* ── Format Itinerary Markdown → HTML ────────── */
+function formatItinerary(text) {
+    const lines = text.split('\n');
+    let html = '';
+    let inList = false;
+
+    lines.forEach(line => {
+        line = line.trim();
+
+        // Empty line
+        if (!line) {
+            if (inList) { html += '</ul>'; inList = false; }
+            return;
+        }
+
+        // ── Day headers: "Day 1", "### Day 2: Title"
+        if (/^(#+\s*)?Day\s*\d+/i.test(line)) {
+            if (inList) { html += '</ul>'; inList = false; }
+            const dayNum  = line.match(/\d+/)?.[0] || '';
+            const rawTitle = line
+                .replace(/^#+\s*/, '')
+                .replace(/\*\*/g, '')
+                .replace(/Day\s*\d+\s*[:\-–]?\s*/i, '')
+                .trim();
+            html += `
+            <div class="day-header">
+                <div class="day-number">Day ${dayNum}</div>
+                ${rawTitle ? `<div class="day-title">${rawTitle}</div>` : ''}
+            </div>`;
+            return;
+        }
+
+        // ── Time blocks: Morning / Afternoon / Evening
+        if (/^\*{0,2}(Morning|Afternoon|Evening)\*{0,2}[\s\(]/i.test(line)) {
+            if (inList) { html += '</ul>'; inList = false; }
+            const label     = line.match(/(Morning|Afternoon|Evening)/i)?.[0] || '';
+            const timeRange = line.match(/\(([^)]+)\)/)?.[1] || '';
+            const icons     = { Morning:'🌅', Afternoon:'☀️', Evening:'🌙' };
+            html += `
+            <div class="time-block">
+                <span class="time-icon">${icons[label] || '🕐'}</span>
+                <span class="time-label">${label}</span>
+                ${timeRange ? `<span class="time-range">(${timeRange})</span>` : ''}
+            </div>`;
+            return;
+        }
+
+        // ── Budget / cost lines
+        if (/estimated.*budget|total.*budget|total.*cost/i.test(line)) {
+            if (inList) { html += '</ul>'; inList = false; }
+            const clean = line
+                .replace(/\*\*/g, '')
+                .replace(/^[-*#\s]+/, '')
+                .replace(/^💰\s*/, '');
+            html += `<div class="budget-box">💰 ${clean}</div>`;
+            return;
+        }
+
+        // ── Travel Tips header
+        if (/^\*{0,2}Travel Tips?\*{0,2}:?$/i.test(line.replace(/\*\*/g,''))) {
+            if (inList) { html += '</ul>'; inList = false; }
+            html += `<div class="tips-header">🧳 Travel Tips</div>`;
+            return;
+        }
+
+        // ── Note lines
+        if (/^(ℹ️\s*)?Note:/i.test(line)) {
+            if (inList) { html += '</ul>'; inList = false; }
+            const clean = line.replace(/^(ℹ️\s*)?Note:\s*/i, '');
+            html += `<div class="note-box">ℹ️ <strong>Note:</strong> ${formatInline(clean)}</div>`;
+            return;
+        }
+
+        // ── Section headers ### or standalone **text**
+        if (/^###/.test(line) || /^\*\*[^*]+\*\*$/.test(line)) {
+            if (inList) { html += '</ul>'; inList = false; }
+            const title = line.replace(/^#+\s*/, '').replace(/\*\*/g, '');
+            html += `<div class="section-label">${title}</div>`;
+            return;
+        }
+
+        // ── Bullet list items: - or *
+        if (/^[-*]\s+/.test(line)) {
+            if (!inList) { html += '<ul class="item-list">'; inList = true; }
+            const content = formatInline(line.replace(/^[-*]\s+/, ''));
+            html += `<li><span class="bullet">◆</span><span>${content}</span></li>`;
+            return;
+        }
+
+        // ── Regular paragraph
+        if (inList) { html += '</ul>'; inList = false; }
+        html += `<p class="regular-line">${formatInline(line)}</p>`;
+    });
+
+    if (inList) html += '</ul>';
+    return html;
+}
+
+/* Bold inline **text** */
+function formatInline(text) {
+    return text.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+}
+
+/* ── Generate Itinerary ──────────────────────── */
+async function generateItinerary() {
+    const destination = document.getElementById('destination').value.trim();
+    if (!destination) {
+        alert('Please enter a destination first!');
+        return;
+    }
+    const numDays   = document.getElementById('numDays').value;
+    const budget    = document.getElementById('budget').value;
+    const interests = getInterests() || 'sightseeing';
+
+    // Show loading
+    document.getElementById('resultPlaceholder').style.display = 'none';
+    document.getElementById('itineraryResult').style.display   = 'none';
+    document.getElementById('loadingState').style.display      = 'block';
+    document.getElementById('generateBtn').disabled = true;
+
+    try {
+        const res = await fetch('/ai/itinerary/generate', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                destination,
+                num_days: numDays,
+                interests,
+                budget
+            })
+        });
+        const data = await res.json();
+
+        // Populate result
+        document.getElementById('resultTitle').textContent    = `${numDays}-Day ${destination} Itinerary`;
+        document.getElementById('resultSubtitle').textContent = `Budget: ${budget} · Interests: ${interests}`;
+        document.getElementById('itineraryContent').innerHTML = formatItinerary(data.itinerary);
+
+        // Show result
+        document.getElementById('loadingState').style.display    = 'none';
+        document.getElementById('itineraryResult').style.display = 'block';
+
+        // Scroll to result
+        setTimeout(() => {
+            document.getElementById('itineraryResult').scrollIntoView({
+                behavior: 'smooth', block: 'start'
+            });
+        }, 100);
+
+    } catch (e) {
+        document.getElementById('loadingState').style.display      = 'none';
+        document.getElementById('resultPlaceholder').style.display = 'block';
+        alert('Error generating itinerary. Please try again.');
+    }
+
+    document.getElementById('generateBtn').disabled = false;
+}
+
+/* ── Copy Itinerary ──────────────────────────── */
+function copyItinerary() {
+    const text = document.getElementById('itineraryContent').innerText;
+    navigator.clipboard.writeText(text).then(() => {
+        alert('✅ Itinerary copied to clipboard!');
+    }).catch(() => {
+        alert('Could not copy. Please select and copy manually.');
+    });
+}
+
+/* ── Auto-generate if URL has ?dest= ─────────── */
+window.addEventListener('DOMContentLoaded', () => {
+    const params = new URLSearchParams(window.location.search);
+    if (params.get('dest')) {
+        document.getElementById('destination').value = params.get('dest');
+        if (params.get('days')) {
+            document.getElementById('numDays').value = params.get('days');
+        }
+        setTimeout(generateItinerary, 600);
+    }
+});
+</script>
+{% endblock %}
