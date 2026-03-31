@@ -1,0 +1,116 @@
+{% extends "base.html" %}
+{% block title %}{{ package.title }} – Wanderlust AI{% endblock %}
+{% block extra_css %}
+<style>
+.pkg-hero { position:relative; height:520px; overflow:hidden; }
+.pkg-hero img { width:100%; height:100%; object-fit:cover; }
+.pkg-hero-overlay { position:absolute; inset:0; background:linear-gradient(to top, rgba(13,27,42,0.95) 0%, rgba(13,27,42,0.2) 100%); }
+.pkg-hero-content { position:absolute; bottom:0; left:0; right:0; padding:48px 60px; max-width:1300px; margin:0 auto; }
+.pkg-hero-content h1 { font-family:'Cormorant Garamond',serif; font-size:clamp(2.2rem,4vw,3.5rem); color:white; font-weight:700; margin-bottom:12px; }
+.pkg-main { max-width:1300px; margin:0 auto; padding:60px 40px; display:grid; grid-template-columns:1fr 360px; gap:48px; }
+.pkg-content {}
+.pkg-description { background:white; border-radius:20px; padding:36px; margin-bottom:28px; box-shadow:var(--shadow-sm); }
+.pkg-description h3 { font-family:'Cormorant Garamond',serif; font-size:1.5rem; color:var(--navy); font-weight:700; margin-bottom:16px; }
+.pkg-description p { color:var(--text-mid); line-height:1.85; font-size:0.97rem; }
+.pkg-highlights { display:grid; grid-template-columns:repeat(2,1fr); gap:14px; margin-top:24px; }
+.pkg-highlight { display:flex; align-items:center; gap:10px; font-size:0.88rem; color:var(--text-mid); }
+.pkg-highlight i { color:var(--gold); }
+.booking-card { background:white; border-radius:20px; padding:32px; box-shadow:var(--shadow-md); position:sticky; top:90px; height:fit-content; }
+.booking-card h3 { font-family:'Cormorant Garamond',serif; font-size:1.4rem; color:var(--navy); font-weight:700; margin-bottom:8px; }
+.price-big { font-family:'Cormorant Garamond',serif; font-size:2.8rem; font-weight:700; color:var(--navy); }
+.price-big span { font-size:1rem; color:var(--text-light); font-family:'DM Sans',sans-serif; font-weight:400; }
+.price-divider { height:1px; background:var(--cream-dark); margin:20px 0; }
+.total-row { display:flex; justify-content:space-between; align-items:center; padding:12px 0; }
+.total-row.final { font-weight:700; font-size:1.1rem; color:var(--navy); border-top:2px solid var(--cream-dark); margin-top:8px; padding-top:16px; }
+@media (max-width:1024px) { .pkg-main { grid-template-columns:1fr; } .booking-card { position:static; } }
+@media (max-width:768px) { .pkg-hero-content { padding:30px 20px; } .pkg-main { padding:40px 20px; } }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="pkg-hero">
+    <img src="{{ package.image_url }}" alt="{{ package.title }}">
+    <div class="pkg-hero-overlay"></div>
+    <div class="pkg-hero-content">
+        <div class="package-badge" style="margin-bottom:14px">{{ package.category }}</div>
+        <h1>{{ package.title }}</h1>
+        <div style="display:flex; align-items:center; gap:20px; color:rgba(255,255,255,0.8); font-size:0.92rem; flex-wrap:wrap;">
+            <span><i class="fas fa-map-marker-alt" style="color:var(--gold)"></i> {{ package.destination }}</span>
+            <span><i class="fas fa-clock" style="color:var(--gold)"></i> {{ package.duration_days }} Days</span>
+            <span><i class="fas fa-users" style="color:var(--gold)"></i> Max {{ package.max_people }} People</span>
+            <span><i class="fas fa-star" style="color:var(--gold)"></i> {{ package.rating }} Rating</span>
+        </div>
+    </div>
+</div>
+
+<div class="pkg-main">
+    <div class="pkg-content">
+        <div class="pkg-description">
+            <h3>About This Package</h3>
+            <p>{{ package.description }}</p>
+            <div class="pkg-highlights">
+                <div class="pkg-highlight"><i class="fas fa-check-circle"></i> Professional Guide Included</div>
+                <div class="pkg-highlight"><i class="fas fa-check-circle"></i> Hotel Accommodation</div>
+                <div class="pkg-highlight"><i class="fas fa-check-circle"></i> All Transfers Included</div>
+                <div class="pkg-highlight"><i class="fas fa-check-circle"></i> Meals as per itinerary</div>
+                <div class="pkg-highlight"><i class="fas fa-check-circle"></i> 24/7 Support</div>
+                <div class="pkg-highlight"><i class="fas fa-check-circle"></i> Travel Insurance</div>
+            </div>
+        </div>
+        <div class="pkg-description">
+            <h3>🗓️ Want a Custom Itinerary?</h3>
+            <p style="margin-bottom:16px">Use our AI Itinerary Planner to generate a day-wise plan for <strong>{{ package.destination }}</strong> tailored to your interests.</p>
+            <a href="{{ url_for('ai.itinerary') }}?dest={{ package.destination }}&days={{ package.duration_days }}" class="btn btn-primary btn-sm">
+                <i class="fas fa-magic"></i> Generate AI Itinerary
+            </a>
+        </div>
+    </div>
+
+    <div class="booking-card">
+        <h3>Book This Package</h3>
+        <div class="price-big">₹{{ "{:,.0f}".format(package.price) }}<span>/person</span></div>
+        <div class="price-divider"></div>
+        {% if logged_in %}
+        <form method="POST" action="{{ url_for('bookings.book_package', pkg_id=package.id) }}">
+            <div class="form-group">
+                <label class="form-label">Travel Date</label>
+                <input type="date" name="travel_date" class="form-control" required min="{{ now }}">
+            </div>
+            <div class="form-group">
+                <label class="form-label">Number of People</label>
+                <input type="number" name="num_people" id="numPeople" class="form-control" value="1" min="1" max="{{ package.max_people }}" oninput="calcTotal(this.value)">
+            </div>
+            <div class="form-group">
+                <label class="form-label">Special Requests</label>
+                <textarea name="special_requests" class="form-control" rows="3" placeholder="Any special requirements..."></textarea>
+            </div>
+            <div class="total-row"><span>Price per person</span><span>₹{{ "{:,.0f}".format(package.price) }}</span></div>
+            <div class="total-row"><span>People</span><span id="peopleCount">1</span></div>
+            <div class="total-row final"><span>Total</span><span id="totalPrice">₹{{ "{:,.0f}".format(package.price) }}</span></div>
+            <button type="submit" class="btn btn-primary" style="width:100%; justify-content:center; margin-top:16px">
+                <i class="fas fa-calendar-check"></i> Book Now
+            </button>
+        </form>
+        {% else %}
+        <p style="color:var(--text-mid); margin-bottom:16px; font-size:0.9rem;">Please login to book this package.</p>
+        <a href="{{ url_for('auth.login') }}" class="btn btn-primary" style="width:100%; justify-content:center;">
+            <i class="fas fa-sign-in-alt"></i> Login to Book
+        </a>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
+{% block extra_js %}
+<script>
+const pricePerPerson = {{ package.price }};
+function calcTotal(n) {
+    document.getElementById('peopleCount').textContent = n;
+    document.getElementById('totalPrice').textContent = '₹' + (pricePerPerson * n).toLocaleString('en-IN');
+}
+// Set min date for travel
+document.addEventListener('DOMContentLoaded', () => {
+    const d = document.querySelector('input[type=date]');
+    if (d) d.min = new Date().toISOString().split('T')[0];
+});
+</script>
+{% endblock %}

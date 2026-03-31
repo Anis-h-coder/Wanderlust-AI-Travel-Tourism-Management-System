@@ -1,0 +1,362 @@
+{% extends "base.html" %}
+{% block title %}Travel Packages – Wanderlust AI{% endblock %}
+{% block extra_css %}
+<style>
+.packages-hero {
+    background: linear-gradient(135deg, var(--navy) 0%, var(--navy-mid) 100%);
+    padding: 120px 40px 60px;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+}
+.packages-hero::before {
+    content: '';
+    position: absolute; inset: 0;
+    background: url('https://images.unsplash.com/photo-1488085061387-422e29b40080?w=1400') center/cover;
+    opacity: 0.12;
+}
+.packages-hero h1 {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: clamp(2.5rem, 5vw, 4rem);
+    color: white;
+    font-weight: 700;
+    position: relative;
+    margin-bottom: 14px;
+}
+.packages-hero p {
+    color: rgba(255,255,255,0.65);
+    font-size: 1.05rem;
+    position: relative;
+}
+
+.packages-main { padding: 50px 40px; }
+
+.packages-layout {
+    display: grid;
+    grid-template-columns: 280px 1fr;
+    gap: 36px;
+    max-width: 1300px;
+    margin: 0 auto;
+}
+
+/* ── Sidebar ─────────────────────────────────── */
+.filter-sidebar {
+    position: sticky;
+    top: 90px;
+    height: fit-content;
+    background: white;
+    border-radius: 20px;
+    padding: 28px;
+    box-shadow: var(--shadow-sm);
+}
+.filter-sidebar h3 {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 1.3rem;
+    color: var(--navy);
+    font-weight: 700;
+    margin-bottom: 22px;
+    padding-bottom: 14px;
+    border-bottom: 2px solid var(--cream-dark);
+}
+.filter-section { margin-bottom: 24px; }
+.filter-section > label {
+    font-size: 0.78rem;
+    font-weight: 700;
+    color: var(--text-mid);
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    display: block;
+    margin-bottom: 12px;
+}
+
+/* ── Category Radio Buttons ──────────────────── */
+.category-options { display: flex; flex-direction: column; gap: 6px; }
+.category-option { display: none; }
+.category-label {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 14px;
+    border-radius: 10px;
+    cursor: pointer;
+    font-size: 0.88rem;
+    font-weight: 500;
+    color: var(--text-mid);
+    border: 2px solid transparent;
+    background: var(--cream);
+    transition: var(--transition);
+    user-select: none;
+}
+.category-label:hover {
+    background: rgba(201,168,76,0.08);
+    border-color: rgba(201,168,76,0.2);
+    color: var(--navy);
+}
+.category-option:checked + .category-label {
+    background: linear-gradient(135deg, rgba(201,168,76,0.15), rgba(201,168,76,0.05));
+    border-color: var(--gold);
+    color: var(--gold-dark);
+    font-weight: 600;
+}
+.cat-icon { font-size: 1rem; }
+.cat-check {
+    margin-left: auto;
+    width: 18px; height: 18px;
+    border-radius: 50%;
+    border: 2px solid var(--cream-dark);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 0.65rem;
+    flex-shrink: 0;
+    transition: var(--transition);
+}
+.category-option:checked + .category-label .cat-check {
+    background: var(--gold);
+    border-color: var(--gold);
+    color: var(--navy);
+}
+
+/* ── Search Input ────────────────────────────── */
+.search-input-wrap { position: relative; }
+.search-input-wrap i {
+    position: absolute;
+    left: 14px; top: 50%;
+    transform: translateY(-50%);
+    color: var(--text-light);
+    font-size: 0.85rem;
+}
+.search-input-wrap input {
+    width: 100%;
+    padding: 11px 14px 11px 38px;
+    border: 2px solid var(--cream-dark);
+    border-radius: 10px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.9rem;
+    color: var(--text-dark);
+    outline: none;
+    transition: var(--transition);
+    background: var(--cream);
+}
+.search-input-wrap input:focus {
+    border-color: var(--gold);
+    background: white;
+}
+
+/* ── Toolbar ─────────────────────────────────── */
+.packages-toolbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 24px;
+    flex-wrap: wrap;
+    gap: 12px;
+}
+.results-count { color: var(--text-mid); font-size: 0.9rem; }
+.results-count strong { color: var(--navy); font-weight: 700; }
+
+/* Active filter tag */
+.active-filter {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: rgba(201,168,76,0.1);
+    border: 1px solid rgba(201,168,76,0.3);
+    color: var(--gold-dark);
+    padding: 5px 12px;
+    border-radius: 50px;
+    font-size: 0.82rem;
+    font-weight: 600;
+}
+.active-filter a {
+    color: var(--gold-dark);
+    text-decoration: none;
+    font-size: 0.9rem;
+    margin-left: 2px;
+}
+
+/* ── No Results ──────────────────────────────── */
+.no-results {
+    text-align: center;
+    padding: 80px 20px;
+    background: white;
+    border-radius: 20px;
+}
+.no-results i { font-size: 3rem; margin-bottom: 16px; color: var(--gold-light); display: block; }
+.no-results h3 { font-family:'Cormorant Garamond',serif; font-size:1.6rem; color:var(--navy); margin-bottom:8px; }
+.no-results p { color: var(--text-mid); }
+
+@media (max-width: 960px) {
+    .packages-layout { grid-template-columns: 1fr; }
+    .filter-sidebar { position: static; }
+}
+@media (max-width: 768px) {
+    .packages-main { padding: 30px 20px; }
+    .packages-hero { padding: 100px 20px 50px; }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+
+<!-- Hero -->
+<div class="packages-hero">
+    <h1>Explore All Packages</h1>
+    <p>{{ packages|length }} curated experiences waiting for you</p>
+</div>
+
+<div class="packages-main">
+    <div class="packages-layout">
+
+        <!-- ── Sidebar ───────────────────────── -->
+        <aside class="filter-sidebar">
+            <h3>🔍 Filter Results</h3>
+            <form method="GET" action="{{ url_for('packages.list_packages') }}" id="filterForm">
+
+                <!-- Search -->
+                <div class="filter-section">
+                    <label>Search</label>
+                    <div class="search-input-wrap">
+                        <i class="fas fa-search"></i>
+                        <input type="text" name="search"
+                            value="{{ search }}"
+                            placeholder="Destination or title..."
+                            oninput="debounceSubmit()">
+                    </div>
+                </div>
+
+                <!-- Category -->
+                <div class="filter-section">
+                    <label>Category</label>
+                    <div class="category-options">
+
+                        {% set cats = [
+                            ('', '🌐', 'All Categories'),
+                            ('adventure', '🏔️', 'Adventure'),
+                            ('beach', '🏖️', 'Beach'),
+                            ('cultural', '🏛️', 'Cultural'),
+                            ('wildlife', '🦁', 'Wildlife'),
+                            ('luxury', '👑', 'Luxury'),
+                            ('budget', '💰', 'Budget')
+                        ] %}
+
+                        {% for val, icon, label in cats %}
+                        <input
+                            class="category-option"
+                            type="radio"
+                            name="category"
+                            id="cat_{{ val or 'all' }}"
+                            value="{{ val }}"
+                            {% if category == val %}checked{% endif %}
+                            onchange="this.form.submit()">
+                        <label class="category-label" for="cat_{{ val or 'all' }}">
+                            <span class="cat-icon">{{ icon }}</span>
+                            <span>{{ label }}</span>
+                            <span class="cat-check">✓</span>
+                        </label>
+                        {% endfor %}
+
+                    </div>
+                </div>
+
+                <!-- Buttons -->
+                <button type="submit" class="btn btn-primary btn-sm"
+                    style="width:100%; justify-content:center; margin-bottom:8px">
+                    <i class="fas fa-search"></i> Apply Filters
+                </button>
+                <a href="{{ url_for('packages.list_packages') }}"
+                    class="btn btn-outline btn-sm"
+                    style="width:100%; justify-content:center; display:flex;">
+                    <i class="fas fa-times"></i> Clear All
+                </a>
+
+            </form>
+        </aside>
+
+        <!-- ── Packages Content ───────────────── -->
+        <div class="packages-content">
+            <div class="packages-toolbar">
+                <p class="results-count">
+                    Showing <strong>{{ packages|length }}</strong> package{{ 's' if packages|length != 1 }}
+                    {% if category or search %}
+                    for
+                    {% if category %}
+                        <span class="active-filter">
+                            {{ category|capitalize }}
+                            <a href="{{ url_for('packages.list_packages', search=search) }}">×</a>
+                        </span>
+                    {% endif %}
+                    {% if search %}
+                        <span class="active-filter">
+                            "{{ search }}"
+                            <a href="{{ url_for('packages.list_packages', category=category) }}">×</a>
+                        </span>
+                    {% endif %}
+                    {% endif %}
+                </p>
+            </div>
+
+            {% if packages %}
+            <div class="packages-grid">
+                {% for pkg in packages %}
+                <div class="package-card">
+                    <div class="package-card-img">
+                        <img src="{{ pkg.image_url }}" alt="{{ pkg.title }}" loading="lazy">
+                        <div class="package-badge">{{ pkg.category }}</div>
+                        <div class="package-rating">
+                            <i class="fas fa-star"></i> {{ pkg.rating }}
+                        </div>
+                    </div>
+                    <div class="package-card-body">
+                        <h3>{{ pkg.title }}</h3>
+                        <p class="package-dest">
+                            <i class="fas fa-map-marker-alt"></i>{{ pkg.destination }}
+                        </p>
+                        <p style="font-size:0.85rem; color:var(--text-mid); margin-bottom:14px; line-height:1.6;">
+                            {{ pkg.description[:110] }}...
+                        </p>
+                        <div class="package-meta">
+                            <span><i class="fas fa-clock"></i>{{ pkg.duration_days }} Days</span>
+                            <span><i class="fas fa-users"></i>Max {{ pkg.max_people }}</span>
+                        </div>
+                        <div class="package-price-row">
+                            <div class="package-price">
+                                ₹{{ "{:,.0f}".format(pkg.price) }}<span>/person</span>
+                            </div>
+                            <a href="{{ url_for('packages.package_detail', pkg_id=pkg.id) }}"
+                                class="btn btn-primary btn-sm">
+                                View
+                            </a>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+
+            {% else %}
+            <div class="no-results">
+                <i class="fas fa-search"></i>
+                <h3>No packages found</h3>
+                <p>Try a different category or search term.</p>
+                <a href="{{ url_for('packages.list_packages') }}"
+                    class="btn btn-primary" style="margin-top:20px">
+                    View All Packages
+                </a>
+            </div>
+            {% endif %}
+        </div>
+
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Debounce search input auto-submit
+let searchTimer;
+function debounceSubmit() {
+    clearTimeout(searchTimer);
+    searchTimer = setTimeout(() => {
+        document.getElementById('filterForm').submit();
+    }, 600);
+}
+</script>
+{% endblock %}
