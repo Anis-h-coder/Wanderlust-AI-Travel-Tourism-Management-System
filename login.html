@@ -1,0 +1,163 @@
+{% extends "base.html" %}
+{% block title %}Login – Wanderlust AI{% endblock %}
+{% block extra_css %}
+<style>
+.auth-page {
+    min-height: 100vh;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    background: var(--navy);
+}
+.auth-visual {
+    position: relative;
+    overflow: hidden;
+}
+.auth-visual-bg {
+    position: absolute; inset: 0;
+    background: url('https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=1200') center/cover;
+    opacity: 0.45;
+}
+.auth-visual-overlay {
+    position: absolute; inset: 0;
+    background: linear-gradient(160deg, rgba(13,27,42,0.85), rgba(13,27,42,0.5));
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    padding: 60px;
+}
+.auth-visual h2 {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 3rem;
+    color: white;
+    font-weight: 700;
+    margin-bottom: 16px;
+    font-style: italic;
+}
+.auth-visual p { color: rgba(255,255,255,0.7); font-size: 1rem; line-height: 1.7; max-width: 400px; }
+.auth-form-side {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 60px 40px;
+    background: var(--cream);
+}
+.auth-form-box { width: 100%; max-width: 420px; }
+.auth-form-box .logo-back {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    color: var(--text-mid);
+    text-decoration: none;
+    font-size: 0.88rem;
+    margin-bottom: 36px;
+    transition: var(--transition);
+}
+.auth-form-box .logo-back:hover { color: var(--navy); }
+.auth-form-box h1 {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 2.6rem;
+    color: var(--navy);
+    font-weight: 700;
+    margin-bottom: 8px;
+}
+.auth-form-box > p { color: var(--text-mid); margin-bottom: 36px; font-size: 0.95rem; }
+.form-divider {
+    text-align: center;
+    position: relative;
+    margin: 24px 0;
+}
+.form-divider::before {
+    content: '';
+    position: absolute;
+    top: 50%; left: 0; right: 0;
+    height: 1px;
+    background: var(--cream-dark);
+}
+.form-divider span {
+    position: relative;
+    background: var(--cream);
+    padding: 0 12px;
+    color: var(--text-light);
+    font-size: 0.82rem;
+}
+.auth-switch { text-align: center; margin-top: 24px; color: var(--text-mid); font-size: 0.9rem; }
+.auth-switch a { color: var(--gold-dark); font-weight: 600; text-decoration: none; }
+.password-toggle { position: relative; }
+.password-toggle .form-control { padding-right: 50px; }
+.toggle-eye {
+    position: absolute;
+    right: 16px;
+    top: 50%;
+    transform: translateY(-50%);
+    background: none;
+    border: none;
+    color: var(--text-light);
+    cursor: pointer;
+    font-size: 1rem;
+}
+@media (max-width: 768px) {
+    .auth-page { grid-template-columns: 1fr; }
+    .auth-visual { display: none; }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="auth-page">
+    <div class="auth-visual">
+        <div class="auth-visual-bg"></div>
+        <div class="auth-visual-overlay">
+            <h2>"The world is a book, and those who do not travel read only one page."</h2>
+            <p>— Saint Augustine. Begin your chapter with Wanderlust AI today.</p>
+        </div>
+    </div>
+    <div class="auth-form-side">
+        <div class="auth-form-box">
+            <a href="{{ url_for('main.index') }}" class="logo-back">
+                <i class="fas fa-arrow-left"></i> Back to Home
+            </a>
+            <h1>Welcome Back</h1>
+            <p>Sign in to access your bookings and AI travel tools.</p>
+
+            <form method="POST" action="{{ url_for('auth.login') }}">
+                <div class="form-group">
+                    <label class="form-label">Email Address</label>
+                    <input type="email" name="email" class="form-control" placeholder="you@example.com" required>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Password</label>
+                    <div class="password-toggle">
+                        <input type="password" name="password" class="form-control" id="passwordField" placeholder="Your password" required>
+                        <button type="button" class="toggle-eye" onclick="togglePassword()">
+                            <i class="fas fa-eye" id="eyeIcon"></i>
+                        </button>
+                    </div>
+                </div>
+                <button type="submit" class="btn btn-primary" style="width:100%; justify-content:center; margin-top:8px">
+                    <i class="fas fa-sign-in-alt"></i> Sign In
+                </button>
+            </form>
+
+            <div class="form-divider"><span>or continue as</span></div>
+            <div style="background:var(--cream-dark); padding:14px; border-radius:12px; font-size:0.85rem; color:var(--text-mid);">
+                <strong>Demo Admin:</strong> admin@travel.com / admin123<br>
+                <strong>Create account</strong> below to try user features.
+            </div>
+
+            <p class="auth-switch">
+                Don't have an account? <a href="{{ url_for('auth.register') }}">Create one free →</a>
+            </p>
+        </div>
+    </div>
+</div>
+{% endblock %}
+{% block extra_js %}
+<script>
+function togglePassword() {
+    const f = document.getElementById('passwordField');
+    const i = document.getElementById('eyeIcon');
+    if (f.type === 'password') { f.type = 'text'; i.className = 'fas fa-eye-slash'; }
+    else { f.type = 'password'; i.className = 'fas fa-eye'; }
+}
+</script>
+{% endblock %}
