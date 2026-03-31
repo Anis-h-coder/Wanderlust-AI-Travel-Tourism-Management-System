@@ -1,0 +1,12 @@
+{% extends "base.html" %}
+{% block title %}404 – Page Not Found{% endblock %}
+{% block content %}
+<div style="min-height:100vh; display:flex; align-items:center; justify-content:center; background:var(--navy); text-align:center; padding:40px;">
+    <div>
+        <div style="font-size:8rem; font-family:'Cormorant Garamond',serif; font-weight:700; color:var(--gold); line-height:1;">404</div>
+        <h2 style="font-family:'Cormorant Garamond',serif; font-size:2.2rem; color:white; margin-bottom:14px;">Page Not Found</h2>
+        <p style="color:rgba(255,255,255,0.5); margin-bottom:36px;">Looks like this page took an unplanned detour.</p>
+        <a href="{{ url_for('main.index') }}" class="btn btn-primary"><i class="fas fa-home"></i> Back to Home</a>
+    </div>
+</div>
+{% endblock %}

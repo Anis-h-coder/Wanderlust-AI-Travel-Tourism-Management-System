@@ -1,0 +1,560 @@
+{% extends "base.html" %}
+{% block title %}Wanderlust AI – Discover India's Finest Journeys{% endblock %}
+
+{% block extra_css %}
+<style>
+/* ── Hero ─────────────────────────────────────── */
+.hero {
+    min-height: 100vh;
+    background: var(--navy);
+    position: relative;
+    display: flex;
+    align-items: center;
+    overflow: hidden;
+}
+.hero-bg {
+    position: absolute; inset: 0;
+    background: url('https://images.unsplash.com/photo-1469474968028-56623f02e42e?w=1800') center/cover no-repeat;
+    opacity: 0.25;
+    transform: scale(1.05);
+    animation: slowZoom 20s ease-in-out infinite alternate;
+}
+@keyframes slowZoom { to { transform: scale(1.12); } }
+.hero-overlay {
+    position: absolute; inset: 0;
+    background: linear-gradient(135deg, rgba(13,27,42,0.95) 0%, rgba(13,27,42,0.6) 50%, rgba(13,27,42,0.85) 100%);
+}
+.hero-content {
+    position: relative;
+    max-width: 1300px;
+    margin: 0 auto;
+    padding: 120px 40px 80px;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 80px;
+    align-items: center;
+    width: 100%;
+}
+.hero-left {}
+.hero-tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: rgba(201,168,76,0.12);
+    border: 1px solid rgba(201,168,76,0.3);
+    padding: 7px 16px;
+    border-radius: 50px;
+    color: var(--gold);
+    font-size: 0.82rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-bottom: 28px;
+    animation: fadeIn 0.8s ease;
+}
+.hero-tag span { width: 6px; height: 6px; border-radius: 50%; background: var(--gold); animation: blink 1.5s infinite; }
+@keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
+.hero-title {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: clamp(3rem, 5.5vw, 5.2rem);
+    font-weight: 700;
+    color: white;
+    line-height: 1.08;
+    margin-bottom: 28px;
+    animation: slideUp 0.9s ease;
+}
+.hero-title em {
+    font-style: italic;
+    color: var(--gold);
+    display: block;
+}
+.hero-subtitle {
+    color: rgba(255,255,255,0.7);
+    font-size: 1.08rem;
+    line-height: 1.8;
+    margin-bottom: 44px;
+    max-width: 480px;
+    animation: slideUp 1s ease 0.1s both;
+}
+.hero-cta {
+    display: flex;
+    gap: 16px;
+    flex-wrap: wrap;
+    animation: slideUp 1.1s ease 0.2s both;
+}
+.hero-stats {
+    display: flex;
+    gap: 36px;
+    margin-top: 56px;
+    padding-top: 36px;
+    border-top: 1px solid rgba(255,255,255,0.1);
+    animation: fadeIn 1.3s ease 0.4s both;
+}
+.stat-item {}
+.stat-num {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 2.4rem;
+    font-weight: 700;
+    color: var(--gold);
+    line-height: 1;
+}
+.stat-label { color: rgba(255,255,255,0.5); font-size: 0.82rem; margin-top: 4px; }
+
+/* Search Box */
+.hero-search {
+    background: rgba(255,255,255,0.06);
+    backdrop-filter: blur(20px);
+    border: 1px solid rgba(255,255,255,0.12);
+    border-radius: 24px;
+    padding: 32px;
+    animation: slideUp 1s ease 0.3s both;
+}
+.hero-search h3 {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 1.6rem;
+    color: white;
+    margin-bottom: 24px;
+    font-weight: 600;
+}
+.search-form .form-control {
+    background: rgba(255,255,255,0.08);
+    border-color: rgba(255,255,255,0.15);
+    color: white;
+    margin-bottom: 14px;
+}
+.search-form .form-control::placeholder { color: rgba(255,255,255,0.4); }
+.search-form .form-control:focus { border-color: var(--gold); background: rgba(255,255,255,0.12); }
+.search-form select option { background: var(--navy); }
+
+/* ── AI Features Strip ───────────────────────── */
+.ai-strip {
+    background: linear-gradient(135deg, var(--navy) 0%, var(--navy-mid) 100%);
+    padding: 50px 40px;
+}
+.ai-strip-inner {
+    max-width: 1300px;
+    margin: 0 auto;
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 2px;
+}
+.ai-feature-card {
+    background: rgba(255,255,255,0.03);
+    border: 1px solid rgba(201,168,76,0.12);
+    padding: 36px 32px;
+    text-align: center;
+    text-decoration: none;
+    transition: var(--transition);
+    position: relative;
+    overflow: hidden;
+}
+.ai-feature-card::before {
+    content: '';
+    position: absolute;
+    bottom: 0; left: 0; right: 0;
+    height: 3px;
+    background: linear-gradient(135deg, var(--gold), var(--gold-dark));
+    transform: scaleX(0);
+    transition: var(--transition);
+}
+.ai-feature-card:hover { background: rgba(201,168,76,0.06); }
+.ai-feature-card:hover::before { transform: scaleX(1); }
+.ai-feature-card:first-child { border-radius: 20px 0 0 20px; }
+.ai-feature-card:last-child { border-radius: 0 20px 20px 0; }
+.ai-icon {
+    width: 64px; height: 64px;
+    border-radius: 16px;
+    background: linear-gradient(135deg, rgba(201,168,76,0.2), rgba(201,168,76,0.08));
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1.6rem;
+    margin: 0 auto 18px;
+    border: 1px solid rgba(201,168,76,0.25);
+}
+.ai-feature-card h4 {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 1.3rem;
+    color: white;
+    margin-bottom: 10px;
+    font-weight: 600;
+}
+.ai-feature-card p { color: rgba(255,255,255,0.55); font-size: 0.88rem; line-height: 1.6; }
+
+/* ── Packages Section ────────────────────────── */
+.packages-section { background: var(--cream); }
+.filter-bar {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    justify-content: center;
+    margin-bottom: 44px;
+}
+.filter-btn {
+    padding: 9px 22px;
+    border-radius: 50px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.88rem;
+    font-weight: 500;
+    cursor: pointer;
+    border: 2px solid var(--cream-dark);
+    background: white;
+    color: var(--text-mid);
+    transition: var(--transition);
+}
+.filter-btn:hover, .filter-btn.active {
+    border-color: var(--gold);
+    background: var(--gold);
+    color: var(--navy);
+}
+
+/* ── Why Choose Section ──────────────────────── */
+.why-section { background: white; }
+.why-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 28px;
+}
+.why-card {
+    padding: 36px 28px;
+    border-radius: 20px;
+    background: var(--cream);
+    text-align: center;
+    border: 2px solid transparent;
+    transition: var(--transition);
+}
+.why-card:hover { border-color: var(--gold-light); background: white; transform: translateY(-4px); }
+.why-card-icon {
+    width: 68px; height: 68px;
+    border-radius: 18px;
+    background: linear-gradient(135deg, var(--navy), var(--navy-mid));
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1.6rem;
+    margin: 0 auto 20px;
+    color: var(--gold);
+}
+.why-card h4 {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 1.2rem;
+    color: var(--navy);
+    margin-bottom: 10px;
+    font-weight: 700;
+}
+.why-card p { color: var(--text-mid); font-size: 0.88rem; line-height: 1.7; }
+
+/* ── Testimonials ────────────────────────────── */
+.testimonials-section { background: var(--navy); padding: 90px 40px; }
+.testimonials-section .section-header h2 { color: white; }
+.testimonials-grid {
+    max-width: 1300px;
+    margin: 0 auto;
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 24px;
+}
+.testimonial-card {
+    background: rgba(255,255,255,0.05);
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 20px;
+    padding: 32px;
+}
+.testimonial-stars { color: var(--gold); margin-bottom: 16px; font-size: 0.9rem; }
+.testimonial-text { color: rgba(255,255,255,0.8); font-size: 0.93rem; line-height: 1.8; margin-bottom: 20px; font-style: italic; }
+.testimonial-author { display: flex; align-items: center; gap: 12px; }
+.testimonial-avatar {
+    width: 46px; height: 46px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--gold), var(--gold-dark));
+    display: flex; align-items: center; justify-content: center;
+    font-weight: 700;
+    color: var(--navy);
+    font-size: 1rem;
+}
+.testimonial-name { color: white; font-weight: 600; font-size: 0.92rem; }
+.testimonial-loc { color: rgba(255,255,255,0.45); font-size: 0.8rem; }
+
+/* ── CTA Banner ──────────────────────────────── */
+.cta-section {
+    background: linear-gradient(135deg, var(--gold-dark) 0%, var(--gold) 50%, var(--gold-light) 100%);
+    padding: 80px 40px;
+    text-align: center;
+}
+.cta-section h2 {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: clamp(2rem, 4vw, 3.2rem);
+    color: var(--navy);
+    font-weight: 700;
+    margin-bottom: 16px;
+}
+.cta-section p { color: rgba(13,27,42,0.75); font-size: 1rem; margin-bottom: 36px; }
+
+@media (max-width: 1024px) {
+    .hero-content { grid-template-columns: 1fr; gap: 40px; }
+    .hero-stats { gap: 24px; }
+    .ai-strip-inner { grid-template-columns: 1fr; }
+    .ai-feature-card:first-child, .ai-feature-card:last-child { border-radius: 20px; }
+    .why-grid { grid-template-columns: repeat(2, 1fr); }
+    .testimonials-grid { grid-template-columns: 1fr; }
+}
+@media (max-width: 768px) {
+    .hero-content { padding: 100px 20px 60px; }
+    .why-grid { grid-template-columns: 1fr; }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+
+<!-- Hero Section -->
+<section class="hero">
+    <div class="hero-bg"></div>
+    <div class="hero-overlay"></div>
+    <div class="hero-content">
+        <div class="hero-left">
+            <div class="hero-tag">
+                <span></span>
+                AI-Powered Travel Experiences
+            </div>
+            <h1 class="hero-title">
+                Explore India
+                <em>Like Never Before</em>
+            </h1>
+            <p class="hero-subtitle">
+                Discover extraordinary destinations with personalized AI recommendations, 
+                intelligent itinerary planning, and curated travel packages crafted for every explorer.
+            </p>
+            <div class="hero-cta">
+                <a href="{{ url_for('packages.list_packages') }}" class="btn btn-primary">
+                    <i class="fas fa-compass"></i> Explore Packages
+                </a>
+                <a href="{{ url_for('ai.chatbot') }}" class="btn btn-outline">
+                    <i class="fas fa-robot"></i> Chat with AI
+                </a>
+            </div>
+            <div class="hero-stats">
+                <div class="stat-item">
+                    <div class="stat-num">500+</div>
+                    <div class="stat-label">Destinations</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-num">12K+</div>
+                    <div class="stat-label">Happy Travelers</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-num">4.9★</div>
+                    <div class="stat-label">Avg Rating</div>
+                </div>
+            </div>
+        </div>
+        <div class="hero-right">
+            <div class="hero-search">
+                <h3>🔍 Find Your Dream Trip</h3>
+                <form class="search-form" action="{{ url_for('packages.list_packages') }}" method="GET">
+                    <div class="form-group">
+                        <input type="text" name="search" class="form-control" placeholder="Where do you want to go?">
+                    </div>
+                    <div class="form-group">
+                        <select name="category" class="form-control form-select">
+                            <option value="">All Categories</option>
+                            <option value="adventure">🏔️ Adventure</option>
+                            <option value="beach">🏖️ Beach</option>
+                            <option value="cultural">🏛️ Cultural</option>
+                            <option value="wildlife">🦁 Wildlife</option>
+                            <option value="luxury">👑 Luxury</option>
+                            <option value="budget">💰 Budget</option>
+                        </select>
+                    </div>
+                    <button type="submit" class="btn btn-primary" style="width:100%; justify-content:center">
+                        <i class="fas fa-search"></i> Search Packages
+                    </button>
+                </form>
+                <div style="margin-top:20px; padding-top:20px; border-top:1px solid rgba(255,255,255,0.1)">
+                    <p style="color:rgba(255,255,255,0.5); font-size:0.8rem; margin-bottom:10px;">✨ Try our AI tools</p>
+                    <div style="display:flex; gap:8px; flex-wrap:wrap;">
+                        <a href="{{ url_for('ai.itinerary') }}" style="background:rgba(201,168,76,0.15); border:1px solid rgba(201,168,76,0.3); color:var(--gold); padding:7px 14px; border-radius:8px; font-size:0.8rem; text-decoration:none">📅 Plan Itinerary</a>
+                        <a href="{{ url_for('ai.recommendations') }}" style="background:rgba(201,168,76,0.15); border:1px solid rgba(201,168,76,0.3); color:var(--gold); padding:7px 14px; border-radius:8px; font-size:0.8rem; text-decoration:none">⭐ Get Recommendations</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- AI Features Strip -->
+<div class="ai-strip">
+    <div class="ai-strip-inner">
+        <a href="{{ url_for('ai.chatbot') }}" class="ai-feature-card">
+            <div class="ai-icon">🤖</div>
+            <h4>Travel Chatbot</h4>
+            <p>Ask anything about destinations, visas, packing lists, or local tips. Our AI is available 24/7.</p>
+        </a>
+        <a href="{{ url_for('ai.itinerary') }}" class="ai-feature-card">
+            <div class="ai-icon">🗓️</div>
+            <h4>Itinerary Planner</h4>
+            <p>Generate a complete day-wise travel plan for any destination in seconds with AI.</p>
+        </a>
+        <a href="{{ url_for('ai.recommendations') }}" class="ai-feature-card">
+            <div class="ai-icon">✨</div>
+            <h4>Smart Recommendations</h4>
+            <p>Tell us your budget and preferences — our AI will suggest perfect destinations for you.</p>
+        </a>
+    </div>
+</div>
+
+<!-- Featured Packages -->
+<section class="section packages-section">
+    <div class="container">
+        <div class="section-header">
+            <div class="section-tag">✈ Curated For You</div>
+            <h2>Featured Travel Packages</h2>
+            <p>Handpicked experiences across India's most breathtaking destinations, rated by thousands of travelers.</p>
+        </div>
+        <div class="filter-bar">
+            <button class="filter-btn active" onclick="filterPackages('all', this)">All</button>
+            <button class="filter-btn" onclick="filterPackages('adventure', this)">🏔️ Adventure</button>
+            <button class="filter-btn" onclick="filterPackages('beach', this)">🏖️ Beach</button>
+            <button class="filter-btn" onclick="filterPackages('cultural', this)">🏛️ Cultural</button>
+            <button class="filter-btn" onclick="filterPackages('luxury', this)">👑 Luxury</button>
+            <button class="filter-btn" onclick="filterPackages('budget', this)">💰 Budget</button>
+        </div>
+        <div class="packages-grid" id="packagesGrid">
+            {% for pkg in packages %}
+            <div class="package-card" data-category="{{ pkg.category }}">
+                <div class="package-card-img">
+                    <img src="{{ pkg.image_url }}" alt="{{ pkg.title }}" loading="lazy">
+                    <div class="package-badge">{{ pkg.category }}</div>
+                    <div class="package-rating"><i class="fas fa-star"></i> {{ pkg.rating }}</div>
+                </div>
+                <div class="package-card-body">
+                    <h3>{{ pkg.title }}</h3>
+                    <p class="package-dest"><i class="fas fa-map-marker-alt"></i>{{ pkg.destination }}</p>
+                    <div class="package-meta">
+                        <span><i class="fas fa-clock"></i>{{ pkg.duration_days }} Days</span>
+                        <span><i class="fas fa-users"></i>Max {{ pkg.max_people }}</span>
+                    </div>
+                    <div class="package-price-row">
+                        <div class="package-price">₹{{ "{:,.0f}".format(pkg.price) }}<span>/person</span></div>
+                        <a href="{{ url_for('packages.package_detail', pkg_id=pkg.id) }}" class="btn btn-primary btn-sm">View Details</a>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        <div style="text-align:center; margin-top:44px">
+            <a href="{{ url_for('packages.list_packages') }}" class="btn btn-dark">
+                View All Packages <i class="fas fa-arrow-right"></i>
+            </a>
+        </div>
+    </div>
+</section>
+
+<!-- Why Choose Us -->
+<section class="section why-section">
+    <div class="container">
+        <div class="section-header">
+            <div class="section-tag">Why Wanderlust AI</div>
+            <h2>Travel Smarter, Not Harder</h2>
+            <p>We combine cutting-edge AI with deep travel expertise to give you experiences that feel personally crafted.</p>
+        </div>
+        <div class="why-grid">
+            <div class="why-card">
+                <div class="why-card-icon"><i class="fas fa-robot"></i></div>
+                <h4>AI-Powered Planning</h4>
+                <p>Our AI analyzes thousands of data points to create perfectly tailored travel plans just for you.</p>
+            </div>
+            <div class="why-card">
+                <div class="why-card-icon"><i class="fas fa-shield-alt"></i></div>
+                <h4>100% Secure Booking</h4>
+                <p>End-to-end encrypted transactions and verified travel partners for complete peace of mind.</p>
+            </div>
+            <div class="why-card">
+                <div class="why-card-icon"><i class="fas fa-headset"></i></div>
+                <h4>24/7 AI Support</h4>
+                <p>Our intelligent chatbot is always online to answer your travel questions instantly.</p>
+            </div>
+            <div class="why-card">
+                <div class="why-card-icon"><i class="fas fa-tags"></i></div>
+                <h4>Best Price Guarantee</h4>
+                <p>We match any lower price you find, so you always get the best value for your money.</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Testimonials -->
+<section class="testimonials-section">
+    <div class="container">
+        <div class="section-header">
+            <div class="section-tag" style="background:rgba(201,168,76,0.1); color:var(--gold);">Traveler Stories</div>
+            <h2>What Our Travelers Say</h2>
+        </div>
+    </div>
+    <div class="testimonials-grid">
+        <div class="testimonial-card">
+            <div class="testimonial-stars">★★★★★</div>
+            <p class="testimonial-text">"The AI itinerary planner is absolutely magic! It created a perfect 7-day Kerala plan that would have taken me weeks to research myself. Every restaurant suggestion was spot on."</p>
+            <div class="testimonial-author">
+                <div class="testimonial-avatar">PR</div>
+                <div>
+                    <div class="testimonial-name">Priya Ramesh</div>
+                    <div class="testimonial-loc">Chennai, Tamil Nadu</div>
+                </div>
+            </div>
+        </div>
+        <div class="testimonial-card">
+            <div class="testimonial-stars">★★★★★</div>
+            <p class="testimonial-text">"The recommendation system understood exactly what I wanted — a budget Himalayan adventure under ₹15,000. The Manali package was beyond perfect. Booking again next month!"</p>
+            <div class="testimonial-author">
+                <div class="testimonial-avatar">AS</div>
+                <div>
+                    <div class="testimonial-name">Arjun Singh</div>
+                    <div class="testimonial-loc">Delhi, India</div>
+                </div>
+            </div>
+        </div>
+        <div class="testimonial-card">
+            <div class="testimonial-stars">★★★★★</div>
+            <p class="testimonial-text">"The chatbot answered every silly question I had about Goa without judgment. The booking process was seamless. Best travel app I've used in India, period."</p>
+            <div class="testimonial-author">
+                <div class="testimonial-avatar">MK</div>
+                <div>
+                    <div class="testimonial-name">Meera Krishnan</div>
+                    <div class="testimonial-loc">Bengaluru, Karnataka</div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- CTA -->
+<section class="cta-section">
+    <div class="container">
+        <h2>Ready to Start Your Adventure?</h2>
+        <p>Join 12,000+ travelers who trust Wanderlust AI for their dream vacations.</p>
+        <div style="display:flex; gap:16px; justify-content:center; flex-wrap:wrap;">
+            <a href="{{ url_for('auth.register') }}" class="btn btn-dark">
+                <i class="fas fa-user-plus"></i> Create Free Account
+            </a>
+            <a href="{{ url_for('packages.list_packages') }}" class="btn btn-outline" style="border-color:var(--navy); color:var(--navy);">
+                Browse Packages
+            </a>
+        </div>
+    </div>
+</section>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function filterPackages(cat, btn) {
+    document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    document.querySelectorAll('.package-card').forEach(card => {
+        if (cat === 'all' || card.dataset.category === cat) {
+            card.style.display = '';
+            card.style.animation = 'fadeIn 0.4s ease';
+        } else {
+            card.style.display = 'none';
+        }
+    });
+}
+</script>
+{% endblock %}

@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Wanderlust – AI Travel{% endblock %}</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;600;700&family=DM+Sans:wght@300;400;500;600&family=Playfair+Display:ital,wght@1,400;1,700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    {% block extra_css %}{% endblock %}
+    <style>
+        :root {
+            --gold: #C9A84C;
+            --gold-light: #E8C97A;
+            --gold-dark: #A07832;
+            --navy: #0D1B2A;
+            --navy-mid: #1A2F45;
+            --navy-light: #243B55;
+            --cream: #FAF6F0;
+            --cream-dark: #F0E8DC;
+            --text-dark: #1A1A2E;
+            --text-mid: #4A4A6A;
+            --text-light: #8A8AAA;
+            --white: #FFFFFF;
+            --success: #2ECC71;
+            --danger: #E74C3C;
+            --warning: #F39C12;
+            --info: #3498DB;
+            --shadow-sm: 0 2px 12px rgba(13,27,42,0.08);
+            --shadow-md: 0 8px 32px rgba(13,27,42,0.12);
+            --shadow-lg: 0 20px 60px rgba(13,27,42,0.18);
+            --radius: 16px;
+            --radius-sm: 8px;
+            --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        html { scroll-behavior: smooth; }
+        body { font-family: 'DM Sans', sans-serif; background: var(--cream); color: var(--text-dark); overflow-x: hidden; }
+    </style>
+</head>
+<body>
+
+<!-- Navigation -->
+<nav class="navbar" id="navbar">
+    <div class="nav-container">
+        <a href="{{ url_for('main.index') }}" class="nav-logo">
+            <span class="logo-icon">✈</span>
+            <span class="logo-text">Wanderlust<span class="logo-ai">AI</span></span>
+        </a>
+        <ul class="nav-links">
+            <li><a href="{{ url_for('main.index') }}">Home</a></li>
+            <li><a href="{{ url_for('packages.list_packages') }}">Packages</a></li>
+            <li class="dropdown">
+                <a href="#">AI Features <i class="fas fa-chevron-down"></i></a>
+                <div class="dropdown-menu">
+                    <a href="{{ url_for('ai.chatbot') }}"><i class="fas fa-robot"></i> Travel Chatbot</a>
+                    <a href="{{ url_for('ai.itinerary') }}"><i class="fas fa-map-marked-alt"></i> Itinerary Planner</a>
+                    <a href="{{ url_for('ai.recommendations') }}"><i class="fas fa-star"></i> Recommendations</a>
+                </div>
+            </li>
+            {% if logged_in %}
+                {% if current_user_role == 'admin' %}
+                    <li><a href="{{ url_for('admin.dashboard') }}">Admin</a></li>
+                {% else %}
+                    <li><a href="{{ url_for('bookings.user_dashboard') }}">Dashboard</a></li>
+                {% endif %}
+                <li><a href="{{ url_for('auth.logout') }}" class="btn-nav">Logout</a></li>
+            {% else %}
+                <li><a href="{{ url_for('auth.login') }}">Login</a></li>
+                <li><a href="{{ url_for('auth.register') }}" class="btn-nav">Get Started</a></li>
+            {% endif %}
+        </ul>
+        <button class="hamburger" id="hamburger">
+            <span></span><span></span><span></span>
+        </button>
+    </div>
+</nav>
+
+<!-- Flash Messages -->
+{% with messages = get_flashed_messages(with_categories=true) %}
+  {% if messages %}
+    <div class="flash-container">
+      {% for category, message in messages %}
+        <div class="flash flash-{{ category }}">
+            <i class="fas fa-{% if category=='success' %}check-circle{% elif category=='error' %}exclamation-circle{% elif category=='warning' %}exclamation-triangle{% else %}info-circle{% endif %}"></i>
+            {{ message }}
+            <button onclick="this.parentElement.remove()" class="flash-close">&times;</button>
+        </div>
+      {% endfor %}
+    </div>
+  {% endif %}
+{% endwith %}
+
+<!-- Main Content -->
+<main>
+    {% block content %}{% endblock %}
+</main>
+
+<!-- Footer -->
+<footer class="footer">
+    <div class="footer-container">
+        <div class="footer-brand">
+            <div class="footer-logo">✈ Wanderlust<span>AI</span></div>
+            <p>Your AI-powered travel companion for extraordinary journeys across India and beyond.</p>
+            <div class="footer-social">
+                <a href="#"><i class="fab fa-instagram"></i></a>
+                <a href="#"><i class="fab fa-twitter"></i></a>
+                <a href="#"><i class="fab fa-facebook"></i></a>
+                <a href="#"><i class="fab fa-youtube"></i></a>
+            </div>
+        </div>
+        <div class="footer-links">
+            <h4>Explore</h4>
+            <a href="{{ url_for('packages.list_packages') }}">All Packages</a>
+            <a href="{{ url_for('ai.chatbot') }}">Travel Chatbot</a>
+            <a href="{{ url_for('ai.itinerary') }}">Itinerary Planner</a>
+            <a href="{{ url_for('ai.recommendations') }}">Recommendations</a>
+        </div>
+        <div class="footer-links">
+            <h4>Company</h4>
+            <a href="#">About Us</a>
+            <a href="#">Careers</a>
+            <a href="#">Blog</a>
+            <a href="#">Press</a>
+        </div>
+        <div class="footer-links">
+            <h4>Support</h4>
+            <a href="#">Help Center</a>
+            <a href="#">Privacy Policy</a>
+            <a href="#">Terms of Service</a>
+            <a href="#">Contact Us</a>
+        </div>
+        <div class="footer-contact">
+            <h4>Contact</h4>
+            <p><i class="fas fa-envelope"></i> hello@wanderlustai.in</p>
+            <p><i class="fas fa-phone"></i> +91 98765 43210</p>
+            <p><i class="fas fa-map-marker-alt"></i> Chennai, Tamil Nadu, India</p>
+        </div>
+    </div>
+    <div class="footer-bottom">
+        <p>© 2025 WanderlustAI. Built with ❤️ for travelers. Powered by AI.</p>
+    </div>
+</footer>
+
+<script src="{{ url_for('static', filename='js/main.js') }}"></script>
+{% block extra_js %}{% endblock %}
+</body>
+</html>
