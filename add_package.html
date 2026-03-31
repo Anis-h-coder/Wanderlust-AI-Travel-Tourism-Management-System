@@ -1,0 +1,91 @@
+{% extends "base.html" %}
+{% block title %}{% if package %}Edit{% else %}Add{% endif %} Package – Admin{% endblock %}
+{% block extra_css %}
+<style>
+.admin-layout { display:grid; grid-template-columns:260px 1fr; min-height:100vh; padding-top:70px; }
+.admin-sidebar { background:var(--navy); padding:30px 16px; }
+.admin-sidebar-logo { font-family:'Cormorant Garamond',serif; font-size:1.3rem; color:white; font-weight:700; padding:0 12px 24px; border-bottom:1px solid rgba(255,255,255,0.08); margin-bottom:20px; }
+.admin-sidebar-logo span { color:var(--gold); font-style:italic; }
+.sidebar-nav a { display:flex; align-items:center; gap:12px; padding:12px 14px; border-radius:10px; color:rgba(255,255,255,0.6); text-decoration:none; font-size:0.9rem; font-weight:500; transition:var(--transition); margin-bottom:4px; }
+.sidebar-nav a:hover, .sidebar-nav a.active { background:rgba(255,255,255,0.08); color:white; }
+.sidebar-nav a i { color:var(--gold); width:18px; }
+.sidebar-section-title { font-size:0.72rem; font-weight:600; text-transform:uppercase; letter-spacing:1px; color:rgba(255,255,255,0.3); padding:12px 14px 8px; }
+.admin-main { background:var(--cream); padding:40px; }
+.form-card { background:white; border-radius:20px; padding:36px; box-shadow:var(--shadow-sm); max-width:800px; }
+.form-grid-2 { display:grid; grid-template-columns:1fr 1fr; gap:20px; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="admin-layout">
+    <aside class="admin-sidebar">
+        <div class="admin-sidebar-logo">Wanderlust<span>AI</span> Admin</div>
+        <nav class="sidebar-nav">
+            <div class="sidebar-section-title">Management</div>
+            <a href="{{ url_for('admin.dashboard') }}"><i class="fas fa-tachometer-alt"></i> Dashboard</a>
+            <a href="{{ url_for('admin.packages') }}" class="active"><i class="fas fa-suitcase"></i> Packages</a>
+            <a href="{{ url_for('admin.bookings') }}"><i class="fas fa-calendar-check"></i> Bookings</a>
+            <div class="sidebar-section-title">General</div>
+            <a href="{{ url_for('main.index') }}"><i class="fas fa-globe"></i> View Site</a>
+            <a href="{{ url_for('auth.logout') }}" style="color:rgba(231,76,60,0.8)"><i class="fas fa-sign-out-alt"></i> Logout</a>
+        </nav>
+    </aside>
+    <div class="admin-main">
+        <div style="margin-bottom:24px">
+            <h1 style="font-family:'Cormorant Garamond',serif; font-size:2rem; color:var(--navy); font-weight:700">{% if package %}Edit{% else %}Add New{% endif %} Package</h1>
+        </div>
+        <div class="form-card">
+            <form method="POST">
+                <div class="form-group">
+                    <label class="form-label">Package Title</label>
+                    <input type="text" name="title" class="form-control" placeholder="e.g. Golden Triangle Adventure" required value="{{ package.title if package else '' }}">
+                </div>
+                <div class="form-grid-2">
+                    <div class="form-group">
+                        <label class="form-label">Destination</label>
+                        <input type="text" name="destination" class="form-control" placeholder="City, State" required value="{{ package.destination if package else '' }}">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Category</label>
+                        <select name="category" class="form-control form-select" required>
+                            {% for cat in ['adventure','beach','cultural','wildlife','luxury','budget'] %}
+                            <option value="{{ cat }}" {% if package and package.category==cat %}selected{% endif %}>{{ cat|capitalize }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Description</label>
+                    <textarea name="description" class="form-control" rows="4" placeholder="Describe the package...">{{ package.description if package else '' }}</textarea>
+                </div>
+                <div class="form-grid-2">
+                    <div class="form-group">
+                        <label class="form-label">Duration (Days)</label>
+                        <input type="number" name="duration_days" class="form-control" value="{{ package.duration_days if package else 5 }}" min="1" required>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Price (₹ per person)</label>
+                        <input type="number" name="price" class="form-control" value="{{ package.price if package else '' }}" min="0" step="0.01" required>
+                    </div>
+                </div>
+                <div class="form-grid-2">
+                    <div class="form-group">
+                        <label class="form-label">Max People</label>
+                        <input type="number" name="max_people" class="form-control" value="{{ package.max_people if package else 10 }}" min="1">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Image URL</label>
+                    <input type="url" name="image_url" class="form-control" placeholder="https://..." value="{{ package.image_url if package else '' }}">
+                </div>
+                <div style="display:flex; gap:14px; margin-top:8px">
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-save"></i> {% if package %}Update{% else %}Add{% endif %} Package
+                    </button>
+                    <a href="{{ url_for('admin.packages') }}" class="btn btn-outline">Cancel</a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

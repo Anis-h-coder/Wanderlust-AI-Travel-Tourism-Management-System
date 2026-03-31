@@ -1,0 +1,88 @@
+{% extends "base.html" %}
+{% block title %}Manage Packages – Admin{% endblock %}
+{% block extra_css %}
+<style>
+.admin-layout { display:grid; grid-template-columns:260px 1fr; min-height:100vh; padding-top:70px; }
+.admin-sidebar { background:var(--navy); padding:30px 16px; }
+.admin-sidebar-logo { font-family:'Cormorant Garamond',serif; font-size:1.3rem; color:white; font-weight:700; padding:0 12px 24px; border-bottom:1px solid rgba(255,255,255,0.08); margin-bottom:20px; }
+.admin-sidebar-logo span { color:var(--gold); font-style:italic; }
+.sidebar-nav a { display:flex; align-items:center; gap:12px; padding:12px 14px; border-radius:10px; color:rgba(255,255,255,0.6); text-decoration:none; font-size:0.9rem; font-weight:500; transition:var(--transition); margin-bottom:4px; }
+.sidebar-nav a:hover, .sidebar-nav a.active { background:rgba(255,255,255,0.08); color:white; }
+.sidebar-nav a i { color:var(--gold); width:18px; }
+.sidebar-section-title { font-size:0.72rem; font-weight:600; text-transform:uppercase; letter-spacing:1px; color:rgba(255,255,255,0.3); padding:12px 14px 8px; }
+.admin-main { background:var(--cream); padding:40px; overflow-y:auto; }
+.table-card { background:white; border-radius:20px; padding:28px; box-shadow:var(--shadow-sm); }
+.admin-table { width:100%; border-collapse:collapse; }
+.admin-table th { background:var(--cream); padding:12px 16px; text-align:left; font-size:0.78rem; font-weight:700; text-transform:uppercase; letter-spacing:0.5px; color:var(--text-mid); }
+.admin-table td { padding:14px 16px; border-bottom:1px solid var(--cream); font-size:0.88rem; vertical-align:middle; }
+.admin-table tr:last-child td { border-bottom:none; }
+.pkg-thumb { width:56px; height:40px; border-radius:8px; object-fit:cover; }
+.action-btns { display:flex; gap:8px; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="admin-layout">
+    <aside class="admin-sidebar">
+        <div class="admin-sidebar-logo">Wanderlust<span>AI</span> Admin</div>
+        <nav class="sidebar-nav">
+            <div class="sidebar-section-title">Management</div>
+            <a href="{{ url_for('admin.dashboard') }}"><i class="fas fa-tachometer-alt"></i> Dashboard</a>
+            <a href="{{ url_for('admin.packages') }}" class="active"><i class="fas fa-suitcase"></i> Packages</a>
+            <a href="{{ url_for('admin.bookings') }}"><i class="fas fa-calendar-check"></i> Bookings</a>
+            <div class="sidebar-section-title">General</div>
+            <a href="{{ url_for('main.index') }}"><i class="fas fa-globe"></i> View Site</a>
+            <a href="{{ url_for('auth.logout') }}" style="color:rgba(231,76,60,0.8)"><i class="fas fa-sign-out-alt"></i> Logout</a>
+        </nav>
+    </aside>
+
+    <div class="admin-main">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:28px">
+            <div>
+                <h1 style="font-family:'Cormorant Garamond',serif; font-size:2rem; color:var(--navy); font-weight:700">Travel Packages</h1>
+                <p style="color:var(--text-mid)">{{ packages|length }} packages total</p>
+            </div>
+            <a href="{{ url_for('admin.add_package') }}" class="btn btn-primary"><i class="fas fa-plus"></i> Add Package</a>
+        </div>
+        <div class="table-card">
+            <table class="admin-table">
+                <thead>
+                    <tr>
+                        <th>Image</th>
+                        <th>Title</th>
+                        <th>Destination</th>
+                        <th>Category</th>
+                        <th>Duration</th>
+                        <th>Price</th>
+                        <th>Rating</th>
+                        <th>Status</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for pkg in packages %}
+                    <tr>
+                        <td><img src="{{ pkg.image_url }}" class="pkg-thumb" alt="{{ pkg.title }}"></td>
+                        <td><strong>{{ pkg.title }}</strong></td>
+                        <td>{{ pkg.destination }}</td>
+                        <td><span class="badge badge-info">{{ pkg.category }}</span></td>
+                        <td>{{ pkg.duration_days }}d</td>
+                        <td style="font-weight:600">₹{{ "{:,.0f}".format(pkg.price) }}</td>
+                        <td>⭐ {{ pkg.rating }}</td>
+                        <td><span class="badge badge-{% if pkg.is_active %}success{% else %}danger{% endif %}">{% if pkg.is_active %}Active{% else %}Hidden{% endif %}</span></td>
+                        <td>
+                            <div class="action-btns">
+                                <a href="{{ url_for('admin.edit_package', pkg_id=pkg.id) }}" class="btn btn-sm btn-outline" style="padding:6px 12px">✏️</a>
+                                <form method="POST" action="{{ url_for('admin.delete_package', pkg_id=pkg.id) }}" onsubmit="return confirm('Delete this package?')">
+                                    <button type="submit" class="btn btn-sm btn-danger" style="padding:6px 12px">🗑️</button>
+                                </form>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}
